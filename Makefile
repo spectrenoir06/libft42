@@ -86,6 +86,7 @@ SRC		=	ft_bzero.c				\
 			ft_sort_qck.c			\
 			ft_sort_bbl.c			\
 			ft_swap.c				\
+			ft_kebab.c				\
 			get_next_line.c
 
 DYNAMIC_OBJ	= $(patsubst %.c,$(DYNAMIC_DIR)/%.o,$(SRC))
@@ -99,15 +100,27 @@ STATIC_DIR	= static
 DYNAMIC_DIR	= dynamic
 
 CC			= gcc
-FLAGS		= -Wall -Wextra -Werror
+NORMINETTE	= ~/project/colorminette/colorminette
 
-#ifeq ($(SYSTEM),Linux)
-#	FLAGS	= -Wall -Wextra #-Werror
-#endif
+UNAME_S := $(shell uname -s)
+
+ifeq ($(UNAME_S),Linux)
+	FLAGS	= -Wall -Wextra -Wno-unused-result -Werror
+	DEFLAGS	= -Wall -Wextra -Wno-unused-result
+else
+	FLAGS	= -Wall -Wextra -Werror
+	DEFLAGS	= -Wall -Wextra
+endif
 
 $(shell mkdir -p $(STATIC_DIR) $(DYNAMIC_DIR) $(DEBUG_DIR))
 
 all: $(STATIC_LIB) $(DYNAMIC_LIB) $(DEBUG_LIB)
+
+static: $(STATIC_LIB)
+
+dyn: $(DYNAMIC_LIB)
+
+debug: $(DEBUG_LIB)
 
 $(STATIC_LIB): $(STATIC_OBJ)
 	ar rc $@ $(STATIC_OBJ)
@@ -118,18 +131,18 @@ $(DEBUG_LIB): $(DEBUG_OBJ)
 	ranlib $@
 
 $(DYNAMIC_LIB): $(DYNAMIC_OBJ)
-	$(CC) -shared -o $@ $(DYNAMIC_OBJ)
+	$(CC) -O3 -shared -o $@ $(DYNAMIC_OBJ)
 
 $(STATIC_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) -I $(HEAD_DIR) -o $@ -c $< $(FLAGS)
+	$(CC) -O3 -I $(HEAD_DIR) -o $@ -c $< $(FLAGS)
 
 $(DEBUG_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) -I $(HEAD_DIR) -o $@ -c $< $(FLAGS) -g
+	$(CC) -O0 -I $(HEAD_DIR) -o $@ -c $< $(DEFLAGS) -g
 
 $(DYNAMIC_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) -fPIC -I $(HEAD_DIR) -o $@ -c $< $(FLAGS)
+	$(CC) -O3 -fPIC -I $(HEAD_DIR) -o $@ -c $< $(FLAGS)
 
-.PHONY: clean fclean re
+.PHONY: clean fclean re norme debug static dyn
 
 clean:
 	rm -f $(STATIC_OBJ) $(DYNAMIC_OBJ) $(DEBUG_OBJ)
@@ -137,7 +150,8 @@ clean:
 fclean: clean
 	rm -f $(STATIC_LIB) $(DYNAMIC_LIB) $(DEBUG_LIB)
 
-norm:
-	norminette $(patsubst %,$(SRC_DIR)/%,$(SRC)) $(HEAD_DIR)/libft.h $(HEAD_DIR)/get_next_line.h
+norme:
+	$(NORMINETTE) $(SRC_DIR)/ $(HEAD_DIR)/
 
-re: fclean all
+re: fclean
+	make
