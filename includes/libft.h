@@ -17,6 +17,19 @@
 # include <stdlib.h>
 # include "get_next_line.h"
 
+typedef enum	e_color
+{
+	BLACK = 0,
+	RED = 1,
+	GREEN = 2,
+	YELLOW = 3,
+	BLUE = 4,
+	MANGENTA = 5,
+	CYAN = 6,
+	WHITE = 7
+	DEFAULT = 9
+}				t_color;
+
 typedef struct		s_list
 {
 	void			*content;
